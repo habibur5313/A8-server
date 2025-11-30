@@ -1,0 +1,87 @@
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String
+  role               UserRole
+  needPasswordChange Boolean    @default(true)
+  status             UserStatus @default(ACTIVE)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  admin              Admin?
+  guide             GUIDE?
+  tourist            TOURIST?
+
+  @@map("users")
+}
+
+model Admin {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  profilePhoto  String?
+  contactNumber String
+  isDeleted     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [email], references: [email])
+
+  @@map("admins")
+}
+
+
+
+model GUIDE {
+  id                  String        @id @default(uuid())
+  userId              String        @unique
+  name                String
+  email               String        @unique
+  profilePhoto        String?
+  contactNumber       String
+  gender              Gender
+  address             String?
+  district            String?       // guide location
+  registrationNumber  String        @unique
+  experience          Int           @default(0)
+  languages           String[]      // e.g. ["English", "Bangla"]
+  skills              String[]      // e.g. ["History", "Photography"]
+  appointmentFee      Int
+  qualification       String
+  about               String?       // short bio
+  currentWorkingPlace String?
+  designation         String?
+  averageRating       Float         @default(0.0)
+  totalReviews        Int           @default(0)
+  isAvailable         Boolean       @default(true)
+  isDeleted           Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("guides")
+}
+
+model TOURIST {
+  id            String      @id @default(uuid())
+  userId        String      @unique
+  name          String
+  email         String      @unique
+  profilePhoto  String?
+  contactNumber String?
+  country       String?
+  address       String?
+  preferences   String[]    // e.g. ["Food Tour", "Adventure", "Heritage"]
+  emergencyContact String?
+  isDeleted     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("tourists")
+}
+
+
+
+
