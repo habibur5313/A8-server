@@ -1,7 +1,8 @@
 enum UserRole {
-    PATIENT
-    DOCTOR
+    TOURIST
+    GUIDE
     ADMIN
+    SUPER_ADMIN
 }
 
 enum UserStatus {
