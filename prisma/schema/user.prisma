@@ -59,7 +59,7 @@ model Guide {
   experience          Int      @default(0)
   languages           String[] // e.g. ["English", "Bangla"]
   skills              String[] // e.g. ["History", "Photography"]
-  appointmentFee      Int
+  guideFee            Int
   qualification       String
   about               String? // short bio
   currentWorkingPlace String?
@@ -68,6 +68,7 @@ model Guide {
   totalReviews        Int      @default(0)
   isAvailable         Boolean  @default(true)
   isDeleted           Boolean  @default(false)
+  isVerified          Boolean  @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 

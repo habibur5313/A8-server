@@ -59,7 +59,7 @@ const createGuide = z.object({
     languages: z.array(z.string()).optional(),
     skills: z.array(z.string()).optional(),
 
-    appointmentFee: numberRequired("Appointment fee"),
+    guideFee: numberRequired("Appointment fee"),
 
     qualification: stringRequired("Qualification"),
     about: z.string().optional(),

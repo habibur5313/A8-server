@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('TOURIST', 'GUIDE', 'ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('TOURIST', 'GUIDE', 'ADMIN', 'SUPER_ADMIN');
 
 -- CreateEnum
 CREATE TYPE "UserStatus" AS ENUM ('ACTIVE', 'INACTIVE', 'DELETED');
@@ -19,6 +19,20 @@ CREATE TABLE "users" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "super_admins" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "profilePhoto" TEXT,
+    "contactNumber" TEXT NOT NULL,
+    "isDeleted" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "super_admins_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -50,7 +64,7 @@ CREATE TABLE "guides" (
     "experience" INTEGER NOT NULL DEFAULT 0,
     "languages" TEXT[],
     "skills" TEXT[],
-    "appointmentFee" INTEGER NOT NULL,
+    "guideFee" INTEGER NOT NULL,
     "qualification" TEXT NOT NULL,
     "about" TEXT,
     "currentWorkingPlace" TEXT,
@@ -88,6 +102,9 @@ CREATE TABLE "tourists" (
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "super_admins_email_key" ON "super_admins"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "admins_email_key" ON "admins"("email");
 
 -- CreateIndex
@@ -104,6 +121,9 @@ CREATE UNIQUE INDEX "tourists_userId_key" ON "tourists"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "tourists_email_key" ON "tourists"("email");
+
+-- AddForeignKey
+ALTER TABLE "super_admins" ADD CONSTRAINT "super_admins_email_fkey" FOREIGN KEY ("email") REFERENCES "users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "admins" ADD CONSTRAINT "admins_email_fkey" FOREIGN KEY ("email") REFERENCES "users"("email") ON DELETE RESTRICT ON UPDATE CASCADE;
