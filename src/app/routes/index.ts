@@ -2,6 +2,9 @@ import express from 'express';
 import { apiLimiter } from '../middlewares/rateLimiter';
 import { userRoutes } from '../modules/user/user.routes';
 import { AuthRoutes } from '../modules/auth/auth.routes';
+import { AdminRoutes } from '../modules/admin/admin.routes';
+import { GuideRoutes } from '../modules/guide/guide.routes';
+import { TouristRoutes } from '../modules/tourist/tourist.route';
 
 const router = express.Router();
 
@@ -18,18 +21,18 @@ const moduleRoutes = [
         path: '/auth',
         route: AuthRoutes
     },
-    // {
-    //     path: '/admin',
-    //     route: AdminRoutes
-    // },
-    // {
-    //     path: '/doctor',
-    //     route: DoctorRoutes
-    // },
-    // {
-    //     path: '/patient',
-    //     route: PatientRoutes
-    // },
+    {
+        path: '/admin',
+        route: AdminRoutes
+    },
+    {
+        path: '/guide',
+        route: GuideRoutes
+    },
+    {
+        path: '/tourist',
+        route: TouristRoutes
+    },
     // {
     //     path: '/payment',
     //     route: PaymentRoutes

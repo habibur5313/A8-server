@@ -223,7 +223,7 @@ const getMe = async (user: any) => {
                     registrationNumber: true,
                     experience: true,
                     gender: true,
-                    appointmentFee: true,
+                    guideFee: true,
                     qualification: true,
                     currentWorkingPlace: true,
                     designation: true,
