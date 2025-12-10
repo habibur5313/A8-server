@@ -5,6 +5,7 @@ import { AuthRoutes } from '../modules/auth/auth.routes';
 import { AdminRoutes } from '../modules/admin/admin.routes';
 import { GuideRoutes } from '../modules/guide/guide.routes';
 import { TouristRoutes } from '../modules/tourist/tourist.route';
+import { ListingRoutes } from '../modules/listing/listing.route';
 
 const router = express.Router();
 
@@ -32,6 +33,10 @@ const moduleRoutes = [
     {
         path: '/tourist',
         route: TouristRoutes
+    },
+    {
+        path: '/listing',
+        route: ListingRoutes
     },
     // {
     //     path: '/payment',
