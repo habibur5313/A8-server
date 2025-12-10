@@ -153,35 +153,52 @@ const forgotPassword = async (payload: { email: string }) => {
     )
 };
 
-const resetPassword = async (token: string, payload: { id: string, password: string }) => {
 
-    const userData = await prisma.user.findUniqueOrThrow({
-        where: {
-            id: payload.id,
-            status: UserStatus.ACTIVE
-        }
-    });
+const resetPassword = async (
+  token: string,
+  payload: { id: string; password: string }
+) => {
 
-    const isValidToken = jwtHelpers.verifyToken(token, config.jwt.reset_pass_secret as Secret)
+  // 1. Find user
+  const user = await prisma.user.findFirstOrThrow({
+    where: {
+      id: payload.id,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-    if (!isValidToken) {
-        throw new ApiError(httpStatus.FORBIDDEN, "Forbidden!")
-    }
+  // 2. Verify reset token (must use reset_pass_secret!)
+  const decoded = jwtHelpers.verifyToken(
+    token,
+    config.jwt.jwt_secret as Secret
+  );
 
-    // hash password
-    const password = await bcrypt.hash(payload.password, Number(config.salt_round));
+  if (!decoded || decoded.email !== user.email) {
+    throw new ApiError(httpStatus.FORBIDDEN, "Invalid or expired reset token!");
+  }
 
-    // update into database
-    await prisma.user.update({
-        where: {
-            id: payload.id
-        },
-        data: {
-            password,
-            needPasswordChange: false
-        }
-    })
+  // 3. Hash password
+  const hashedPassword = await bcrypt.hash(
+    payload.password,
+    Number(config.salt_round)
+  );
+
+  // 4. Update password
+  await prisma.user.update({
+    where: { id: payload.id },
+    data: {
+      password: hashedPassword,
+      needPasswordChange: false,
+    },
+  });
+
+
+  return {
+    message: "Password reset successful",
+  };
 };
+
+
 
 const getMe = async (user: any) => {
     const accessToken = user.accessToken;
