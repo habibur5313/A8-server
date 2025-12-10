@@ -15,3 +15,15 @@ enum Gender {
     MALE
     FEMALE
 }
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
