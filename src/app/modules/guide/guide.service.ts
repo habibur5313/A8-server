@@ -54,11 +54,9 @@ const getAllFromDB = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : { averageRating: "desc" },
-    // include: {
-    //   guideSpecialties: { include: { specialities: true } },
-    //   guideSchedules: { include: { schedule: true } },
-    //   review: { select: { rating: true } },
-    // },
+    include: {
+      reviews: { select: { rating: true } },
+    },
   });
 
   const total = await prisma.guide.count({ where: whereConditions });
@@ -69,25 +67,23 @@ const getAllFromDB = async (
 const getByIdFromDB = async (id: string) => {
   const guide = await prisma.guide.findUnique({
     where: { id },
-    // include: {
-    //   guideSpecialties: { include: { specialities: true } },
-    //   guideSchedules: { include: { schedule: true } },
-    //   review: {
-    //     select: {
-    //       rating: true,
-    //       comment: true,
-    //       createdAt: true,
-    //       patient: { select: { name: true, profilePhoto: true } },
-    //     },
-    //   },
-    // },
+    include: {
+      reviews: {
+        select: {
+          rating: true,
+          comment: true,
+          createdAt: true,
+          tourist: { select: { name: true, profilePhoto: true } },
+        },
+      },
+    },
   });
   if (!guide || guide.isDeleted) return null;
   return guide;
 };
 
 const updateIntoDB = async (id: string, payload: IGuideUpdate) => {
-  const {...guideData } = payload;
+  const { ...guideData } = payload;
 
   const guideInfo = await prisma.guide.findUniqueOrThrow({ where: { id } });
 

@@ -6,6 +6,9 @@ import { AdminRoutes } from '../modules/admin/admin.routes';
 import { GuideRoutes } from '../modules/guide/guide.routes';
 import { TouristRoutes } from '../modules/tourist/tourist.route';
 import { ListingRoutes } from '../modules/listing/listing.route';
+import { PaymentRoutes } from '../modules/payment/payment.routes';
+import { ReviewRoutes } from '../modules/review/review.routes';
+import { MetaRoutes } from '../modules/meta/meta.routes';
 
 const router = express.Router();
 
@@ -38,18 +41,18 @@ const moduleRoutes = [
         path: '/listing',
         route: ListingRoutes
     },
-    // {
-    //     path: '/payment',
-    //     route: PaymentRoutes
-    // },
-    // {
-    //     path: '/review',
-    //     route: ReviewRoutes
-    // },
-    // {
-    //     path: '/meta',
-    //     route: MetaRoutes
-    // }
+    {
+        path: '/review',
+        route: ReviewRoutes
+    },
+    {
+        path: '/payment',
+        route: PaymentRoutes
+    },
+    {
+        path: '/meta',
+        route: MetaRoutes
+    }
 ];
 
 moduleRoutes.forEach(route => router.use(route.path, route.route))

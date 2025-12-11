@@ -1,22 +1,23 @@
 enum UserRole {
-    TOURIST
-    GUIDE
-    ADMIN
-    SUPER_ADMIN
+  TOURIST
+  GUIDE
+  ADMIN
+  SUPER_ADMIN
 }
 
 enum UserStatus {
-    ACTIVE
-    INACTIVE
-    DELETED
+  ACTIVE
+  INACTIVE
+  DELETED
 }
 
 enum Gender {
-    MALE
-    FEMALE
+  MALE
+  FEMALE
 }
 
 enum PaymentStatus {
+  PENDING
   PAID
   UNPAID
 }
@@ -27,3 +28,10 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum ListingCategory {
+  Food
+  Adventure
+  Culture
+  Photography
+  Nature
+}

@@ -7,6 +7,7 @@ export default {
     node_env: process.env.NODE_ENV,
     port: process.env.PORT,
     stripeSecretKey: process.env.STRIPE_SECRET_KEY,
+    stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
     salt_round: process.env.SALT_ROUND,
     openRouterApiKey: process.env.OPENROUTER_API_KEY,
     jwt: {

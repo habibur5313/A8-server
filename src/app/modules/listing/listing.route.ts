@@ -3,12 +3,12 @@ import { ListingController } from './listing.controller';
 
 const router = express.Router();
 
-router.post('/', ListingController.createListing);
-router.get('/', ListingController.getAllListings);
-router.get('/:id', ListingController.getListingById);
-router.patch('/:id', ListingController.updateListing);
-router.delete('/:id', ListingController.deleteListing);
-router.patch('/soft-delete/:id', ListingController.softDeleteListing);
+router.post('/', ListingController.createIntoDB);
+router.get('/', ListingController.getAllFromDB);
+router.get('/:id', ListingController.getByIdFromDB);
+router.patch('/:id', ListingController.updateIntoDB);
+router.delete('/:id', ListingController.deleteFromDB);
+router.patch('/soft-delete/:id', ListingController.softDelete);
 
 export default router;
 export const ListingRoutes = router;

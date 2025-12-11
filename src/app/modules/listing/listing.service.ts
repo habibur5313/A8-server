@@ -1,60 +1,122 @@
-import prisma from '../../../shared/prisma';
-import { IListingCreate, IListingUpdate } from './listing.interface';
-import { Prisma } from '@prisma/client';
-import { paginationHelper } from '../../../helpers/paginationHelper';
-import { IPaginationOptions } from '../../interfaces/pagination';
-import { listingFilterableFields } from './listing.constant';
+// src/modules/listings/listing.service.ts
+import { Prisma, PrismaClient } from "@prisma/client";
+import prisma from "../../../shared/prisma";
+import { paginationHelper } from "../../../helpers/paginationHelper";
+import { IPaginationOptions } from "../../interfaces/pagination";
+import { listingSearchableFields } from "./listing.constant";
+import {
+  IListingCreate,
+  IListingFilterRequest,
+  IListingUpdate,
+} from "./listing.interface";
 
-const createListing = async (payload: IListingCreate) => {
-  return prisma.listing.create({ data: payload });
+const getAllFromDB = async (filters: IListingFilterRequest, options: IPaginationOptions) => {
+  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+  const { searchTerm, category, minPrice, maxPrice, ...filterData } = filters;
+
+  const andConditions: Prisma.ListingWhereInput[] = [];
+
+  if (searchTerm) {
+    andConditions.push({
+      OR: listingSearchableFields.map((field) => ({
+        [field]: { contains: searchTerm, mode: "insensitive" },
+      })),
+    });
+  }
+
+  // if (category) {
+  //   const cats = Array.isArray(category) ? category : [category];
+  //   andConditions.push({ category: { in: cats as any } });
+  // }
+
+  if (typeof minPrice === "number" || typeof maxPrice === "number") {
+    const priceCondition: any = {};
+    if (typeof minPrice === "number") priceCondition.gte = minPrice;
+    if (typeof maxPrice === "number") priceCondition.lte = maxPrice;
+    andConditions.push({ price: priceCondition });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    andConditions.push(
+      ...Object.keys(filterData).map((k) => ({
+        [k]: { equals: (filterData as any)[k] },
+      }))
+    );
+  }
+
+  andConditions.push({ isDeleted: false });
+
+  const where: Prisma.ListingWhereInput = andConditions.length ? { AND: andConditions } : {};
+
+  const result = await prisma.listing.findMany({
+    where,
+    skip,
+    take: limit,
+    orderBy: options.sortBy && options.sortOrder ? { [options.sortBy]: options.sortOrder } : { createdAt: "desc" },
+    include: {
+      guide: {
+        select: { id: true, name: true, profilePhoto: true },
+      },
+    },
+  });
+
+  const total = await prisma.listing.count({ where });
+
+  return { meta: { total, page, limit }, data: result };
 };
 
-const getAllListings = async (filters: any, options: IPaginationOptions) => {
-  const { limit, page, skip } = paginationHelper.calculatePagination(options);
+const getByIdFromDB = async (id: string) => {
+  const listing = await prisma.listing.findUnique({
+    where: { id },
+    include: {
+      guide: { select: { id: true, name: true, profilePhoto: true } },
+      bookings: false,
+      reviews: false,
+    },
+  });
+  if (!listing || listing.isDeleted) return null;
+  return listing;
+};
 
-  const andConditions: Prisma.ListingWhereInput[] = [{ isDeleted: false }];
+const createIntoDB = async (req : any) => {
+console.log(req)
+};
 
-  Object.keys(filters).forEach((key) => {
-    if (listingFilterableFields.includes(key)) {
-      andConditions.push({ [key]: { equals: filters[key] } });
+const updateIntoDB = async (id: string, payload: IListingUpdate) => {
+  const { ...listingData } = payload;
+
+  const listingInfo = await prisma.listing.findUniqueOrThrow({ where: { id } });
+
+  await prisma.$transaction(async (tx) => {
+    if (Object.keys(listingData).length > 0) {
+      await tx.listing.update({ where: { id }, data: listingData });
     }
   });
 
-  const whereCondition: Prisma.ListingWhereInput = andConditions.length > 0 ? { AND: andConditions } : {};
-
-  const data = await prisma.listing.findMany({
-    where: whereCondition,
-    skip,
-    take: limit,
-    orderBy: options.sortBy && options.sortOrder ? { [options.sortBy]: options.sortOrder } : { createdAt: 'desc' },
+  return prisma.listing.findUnique({
+    where: { id },
   });
-
-  const total = await prisma.listing.count({ where: whereCondition });
-
-  return { meta: { total, page, limit }, data };
 };
 
-const getListingById = async (id: string) => {
-  return prisma.listing.findUnique({ where: { id } });
+const deleteFromDB = async (id: string) => {
+  return await prisma.$transaction(async (tx) => {
+    const listing = await tx.listing.delete({ where: { id } });
+    return listing;
+  });
 };
 
-const updateListing = async (id: string, payload: IListingUpdate) => {
-  return prisma.listing.update({ where: { id }, data: payload });
-};
-
-const deleteListing = async (id: string) => {
-  return prisma.listing.delete({ where: { id } });
-};
-
-const softDeleteListing = async (id: string) => {
-  return prisma.listing.update({ where: { id }, data: { isDeleted: true } });
+const softDelete = async (id: string) => {
+  return prisma.listing.update({
+    where: { id },
+    data: { isDeleted: true },
+  });
 };
 
 export const ListingService = {
-  createListing,
-  getAllListings,
-  getListingById,
-  updateListing,
-  deleteListing,
-  softDeleteListing,
+  getAllFromDB,
+  getByIdFromDB,
+  createIntoDB,
+  updateIntoDB,
+  deleteFromDB,
+  softDelete,
 };

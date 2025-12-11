@@ -30,10 +30,8 @@ const createGuide = catchAsync(async (req: Request, res: Response) => {
 });
 
 const createTourist = catchAsync(async (req: Request, res: Response) => {
-    console.log(req.body, "controller body")
   const result = await userService.createTourist(req);
 
-  console.log(result)
 
   sendResponse(res, {
     statusCode: httpStatus.OK,

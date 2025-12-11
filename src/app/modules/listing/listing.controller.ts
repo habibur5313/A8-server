@@ -1,85 +1,108 @@
-import { Request, Response } from 'express';
-import sendResponse from '../../../shared/sendResponse';
-import httpStatus from 'http-status';
-import catchAsync from '../../../shared/catchAsync';
-import pick from '../../../shared/pick';
-import { ListingService } from './listing.service';
-import { listingFilterableFields } from './listing.constant';
+// src/modules/listings/listing.controller.ts
+import { listingFilterableFields } from "./listing.constant";
+import httpStatus from "http-status";
+import { Request, Response, NextFunction } from "express";
+import { ListingService } from "./listing.service";
+import { createListingSchema, updateListingSchema } from "./listing.validation";
+import { ZodError } from "zod";
+import sendResponse from "../../../shared/sendResponse";
+import pick from "../../../shared/pick";
 
-const createListing = catchAsync(async (req: Request, res: Response) => {
-  const payload = req.body;
-  const result = await ListingService.createListing(payload);
-  sendResponse(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Listing created successfully',
-    data: result,
-  });
-});
-
-const getAllListings = catchAsync(async (req: Request, res: Response) => {
+const getAllFromDB = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const filters = pick(req.query, listingFilterableFields);
-  const options = pick(req.query, ['limit', 'page', 'sortBy', 'sortOrder']);
-  const result = await ListingService.getAllListings(filters, options);
 
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+
+  const result = await ListingService.getAllFromDB(filters, options);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Listings retrieved successfully',
+    message: "Tour retrieval successfully",
     meta: result.meta,
     data: result.data,
   });
-});
+};
 
-const getListingById = catchAsync(async (req: Request, res: Response) => {
+const getByIdFromDB = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
-  const result = await ListingService.getListingById(id);
+  const result = await ListingService.getByIdFromDB(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Listing retrieved successfully',
+    message: "Tour retrieval successfully",
     data: result,
   });
-});
+};
 
-const updateListing = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const result = await ListingService.updateListing(id, req.body);
+const createIntoDB = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const result = await ListingService.createIntoDB(req);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Listing updated successfully',
+    message: "Tour Created successfully",
     data: result,
   });
-});
+};
 
-const deleteListing = catchAsync(async (req: Request, res: Response) => {
+const updateIntoDB = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
-  const result = await ListingService.deleteListing(id);
+  const result = await ListingService.updateIntoDB(id, req.body);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Listing deleted successfully',
+    message: "Tour data updated!",
     data: result,
   });
-});
+};
 
-const softDeleteListing = catchAsync(async (req: Request, res: Response) => {
+const deleteFromDB = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { id } = req.params;
-  const result = await ListingService.softDeleteListing(id);
+  const result = await ListingService.deleteFromDB(id);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: 'Listing soft deleted successfully',
+    message: "Tour deleted successfully",
     data: result,
   });
-});
+};
+
+const softDelete = async (req: Request, res: Response, next: NextFunction) => {
+  const { id } = req.params;
+  // soft delete preferred
+  const result = await ListingService.softDelete(id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Tour deleted successfully",
+    data: result,
+  });
+};
 
 export const ListingController = {
-  createListing,
-  getAllListings,
-  getListingById,
-  updateListing,
-  deleteListing,
-  softDeleteListing,
+  getAllFromDB,
+  getByIdFromDB,
+  createIntoDB,
+  updateIntoDB,
+  deleteFromDB,
+  softDelete,
 };
