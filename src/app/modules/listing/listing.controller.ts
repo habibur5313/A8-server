@@ -3,10 +3,9 @@ import { listingFilterableFields } from "./listing.constant";
 import httpStatus from "http-status";
 import { Request, Response, NextFunction } from "express";
 import { ListingService } from "./listing.service";
-import { createListingSchema, updateListingSchema } from "./listing.validation";
-import { ZodError } from "zod";
 import sendResponse from "../../../shared/sendResponse";
 import pick from "../../../shared/pick";
+import { IAuthUser } from "../../interfaces/common";
 
 const getAllFromDB = async (
   req: Request,
@@ -43,11 +42,12 @@ const getByIdFromDB = async (
 };
 
 const createIntoDB = async (
-  req: Request,
+  req: Request & { user?: IAuthUser },
   res: Response,
   next: NextFunction
 ) => {
-  const result = await ListingService.createIntoDB(req);
+  const result = await ListingService.createIntoDB(req,req.user!);
+  console.log("result", result)
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

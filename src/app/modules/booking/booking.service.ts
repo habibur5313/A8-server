@@ -5,6 +5,7 @@ import { paginationHelper } from "../../../helpers/paginationHelper";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { IBookingCreate, IBookingFilterRequest, IBookingUpdateStatus } from "./booking.interface";
 import { bookingSearchableFields } from "./booking.constant";
+import { IAuthUser } from "../../interfaces/common";
 
 // --- Helper Functions & Core Services ---
 
@@ -12,10 +13,23 @@ import { bookingSearchableFields } from "./booking.constant";
  * Creates a new booking in the database.
  * Ensures the listing exists and isn't deleted.
  */
-const createBooking = async (req: any): Promise<Booking> => {
+const createBooking = async (req: any ,user: IAuthUser): Promise<Booking> => {
   const payload: IBookingCreate = req.body;
-  const touristId: string = req.user.id;
   const { listingId, bookingDate } = payload;
+
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  const foundUser = await prisma.tourist.findUnique({
+  where: { email: user.email },
+});
+
+console.log("FOUND USER FROM DB:", foundUser);
+
+if (!foundUser) {
+  throw new Error("User not found in DB");
+}
 
   // 1. Verify the listing exists and is active
   const listing = await prisma.listing.findUnique({
@@ -31,7 +45,7 @@ const createBooking = async (req: any): Promise<Booking> => {
 
   const newBooking = await prisma.booking.create({
     data: {
-      touristId,
+      touristId : foundUser.id,  
       listingId,
       bookingDate: dateObject,
       status: BookingStatus.PENDING, // Default status

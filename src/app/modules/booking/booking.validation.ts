@@ -1,21 +1,21 @@
-// src/modules/bookings/booking.validation.ts
 
 import { z } from 'zod';
 import { BookingStatus, PaymentStatus } from '@prisma/client';
 
-// Schema for creating a new booking
-const createBookingZodSchema = z.object({
+export const createBookingZodSchema = z.object({
   body: z.object({
     listingId: z.string({
-      error: 'Listing ID is required',
+      error: "Listing ID is required",
     }),
-    // We expect an ISO string from the client
-    bookingDate: z.string({ 
-      error: 'Booking date is required',
-    }).datetime("Invalid datetime format, expected ISO string"),
-    // touristId is automatically added from req.user by the controller/service
+
+    bookingDate: z
+      .string({
+        error: "Booking date is required",
+      })
+      .datetime("Invalid datetime format, expected ISO string"),
   }),
 });
+
 
 // Schema for updating a booking's status
 const updateBookingStatusZodSchema = z.object({

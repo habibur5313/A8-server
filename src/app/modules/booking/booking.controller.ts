@@ -8,13 +8,13 @@ import { BookingService } from './booking.service';
 import pick from '../../../shared/pick';
 import { bookingFilterableFields, paginationFields } from './booking.constant';
 import { Booking } from '@prisma/client';
+import { IAuthUser } from '../../interfaces/common';
 
 
 
 
-const createBooking = catchAsync(async (req: Request, res: Response) => {
-  // Tourist ID is injected via auth middleware into req.user
-  const result = await BookingService.createBooking(req);
+const createBooking = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+  const result = await BookingService.createBooking(req, req.user!);
 
   sendResponse<Booking>(res, {
     statusCode: httpStatus.CREATED,

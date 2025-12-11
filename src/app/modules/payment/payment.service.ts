@@ -33,8 +33,8 @@ const handleStripeWebhookEvent = async (event: Stripe.Event) => {
             });
 
             if (!booking) {
-                console.error(`⚠️ Appointment ${bookingId} not found. Payment may be for expired appointment.`);
-                return { message: "Appointment not found" };
+                console.error(`⚠️ Booking ${bookingId} not found. Payment may be for expired appointment.`);
+                return { message: "booking not found" };
             }
 
             // Update both appointment and payment in a transaction

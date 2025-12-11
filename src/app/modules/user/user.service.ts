@@ -176,6 +176,8 @@ const getMyProfile = async (user: IAuthUser) => {
     where: { email: user.email },
   });
 
+  console.log(u)
+
   let profile = null;
 
   if (u.role === UserRole.SUPER_ADMIN) {

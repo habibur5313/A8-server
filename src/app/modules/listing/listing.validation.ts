@@ -1,19 +1,43 @@
-// src/modules/listings/listing.validation.ts
 import { z } from "zod";
 
-export const createListingSchema = z.object({
-  title: z.string().min(3, "Title must be at least 3 characters"),
+const ListingCategorySchema = z.enum([
+  "Food",
+  "Adventure",
+  "Culture",
+  "Photography",
+  "Nature",
+]);
+
+const createListingZodSchema = z.object({
+  title: z.string({
+    error: "Title is required",
+  }),
   description: z.string().optional(),
-  price: z.coerce.number().nonnegative("Price must be >= 0"),
+  price: z
+    .number({
+      error: "Price is required",
+    })
+    .int()
+    .positive("Price must be a positive integer"),
   location: z.string().optional(),
-  image: z.string().optional(),
-  images: z.array(z.string()).optional(),
-  guideId: z.string().uuid("guideId must be a valid UUID"),
-  maxGroupSize: z.coerce.number().int().positive().optional(),
-  duration: z.string().optional(),
-  category: z.enum(['Food', 'Adventure', 'Culture', 'Photography', 'Nature']).optional(),
-  languages: z.array(z.string()).optional(),
+  images: z.array(z.string()).optional(), // Assuming these might come from user input or separate uploads
+  category: ListingCategorySchema,
 });
 
-export const updateListingSchema = createListingSchema.partial();
+const updateListingZodSchema = z.object({
+  body: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    price: z.number().int().positive().optional(),
+    location: z.string().optional(),
+    image: z.string().optional(),
+    images: z.array(z.string()).optional(),
+    category: ListingCategorySchema.optional(),
+    isDeleted: z.boolean().optional(),
+  }),
+});
 
+export const ListingValidation = {
+  createListingZodSchema,
+  updateListingZodSchema,
+};

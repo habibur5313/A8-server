@@ -70,6 +70,7 @@ const changeProfileStatus = catchAsync(async (req: Request, res: Response) => {
 
 const getMyProfile = catchAsync(
   async (req: Request & { user?: IAuthUser }, res: Response) => {
+    console.log(req.user)
     const result = await userService.getMyProfile(req.user!);
 
     sendResponse(res, {

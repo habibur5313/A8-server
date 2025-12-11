@@ -2,9 +2,6 @@ import { z } from 'zod';
 
 const create = z.object({
     body: z.object({
-        touristId: z.string({
-            error: 'Tourist Id is required',
-        }),
         guideId: z.string({
             error: 'Guide Id is required',
         }),

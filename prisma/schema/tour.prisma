@@ -1,70 +1,70 @@
 model Listing {
-  id          String    @id @default(uuid())
-  title       String
-  description String?
-  price       Int
-  location    String?
-  image       String?
-  images      String[]
-  category    ListingCategory
-  guideId     String
-  guide       Guide     @relation(fields: [guideId], references: [id])
-  isDeleted   Boolean   @default(false)
-  bookings    Booking[]
-  reviews     Review[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  price        Int
+  location     String?
+  image        String?
+  images       String[]
+  maxGroupSize Int?
+  language     String[]
+  duration     String?
+  category  ListingCategory
+  guideId   String
+  guide     Guide           @relation(fields: [guideId], references: [id])
+  isDeleted Boolean         @default(false)
+  bookings  Booking[]
+  reviews   Review[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
   @@map("listings")
 }
 
-
 model Booking {
-  id          String        @id @default(uuid())
-  touristId   String
-  tourist     Tourist       @relation(fields: [touristId], references: [id])
-  listingId   String
-  listing     Listing       @relation(fields: [listingId], references: [id])
-  bookingDate DateTime
-  status      BookingStatus @default(PENDING)
+  id            String        @id @default(uuid())
+  touristId     String
+  tourist       Tourist       @relation(fields: [touristId], references: [id])
+  listingId     String
+  listing       Listing       @relation(fields: [listingId], references: [id])
+  bookingDate   DateTime
+  status        BookingStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
-  payment     Payment?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  isDeleted   Boolean       @default(false)
+  payment       Payment?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  isDeleted     Boolean       @default(false)
 
   @@map("bookings")
 }
 
-
 model Payment {
-  id                String        @id @default(uuid())
-  bookingId         String        @unique
-  booking           Booking       @relation(fields: [bookingId], references: [id])
-  amount            Float
-  transactionId     String        @unique
-  status            PaymentStatus @default(UNPAID)
+  id                 String        @id @default(uuid())
+  bookingId          String        @unique
+  booking            Booking       @relation(fields: [bookingId], references: [id])
+  amount             Float
+  transactionId      String        @unique
+  status             PaymentStatus @default(UNPAID)
   paymentGatewayData Json?
-  stripeEventId     String?       @unique
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  stripeEventId      String?       @unique
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   @@map("payments")
 }
 
-
 model Review {
-                    id String @id @default(uuid())
-                    touristId String
-                    tourist   Tourist @relation(fields: [touristId], references: [id])
-                    guideId String
-                    guide   Guide  @relation(fields: [guideId], references: [id])
-                    rating    Float
-                    comment   String
-                    createdAt DateTime @default(now())
-                    updatedAt DateTime @updatedAt
-                    listing   Listing? @relation(fields: [listingId], references: [id])
-                    listingId String?
+  id        String   @id @default(uuid())
+  touristId String
+  tourist   Tourist  @relation(fields: [touristId], references: [id])
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id])
+  rating    Float
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  listing   Listing? @relation(fields: [listingId], references: [id])
+  listingId String?
 
-                    @@map("reviews")
+  @@map("reviews")
 }

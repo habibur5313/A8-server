@@ -1,6 +1,6 @@
 // src/modules/listings/listing.interface.ts (Updated)
 
-import { Listing } from "@prisma/client";
+import { Listing, Prisma } from "@prisma/client";
 
 export type ListingCategory = 'Food' | 'Adventure' | 'Culture' | 'Photography' | 'Nature';
 
@@ -20,20 +20,7 @@ export interface IListing {
 }
 
 
-export interface IListingCreate {
-  title: string;
-  description?: string;
-  price: number;
-  location?: string;
-  image?: string;
-  images?: string[]; // array of image URLs
-  // guideId is OPTIONAL here because it comes from req.user, not req.body payload
-  guideId?: string; 
-  maxGroupSize?: number;
-  duration?: string;
-  category?: ListingCategory;
-  languages?: string[];
-}
+
 
 export interface IListingUpdate {
 // ... (rest of the file remains the same)
@@ -60,3 +47,10 @@ export interface IListingFilterRequest {
 }
 
 export type IListingResponse = Listing;
+
+export type IListingCreate = Prisma.ListingUncheckedCreateInput;
+
+// Make guideId optional in the interface since it's added in the service, not in the body payload
+export type IListingCreateInputFromReqBody = Omit<IListingCreate, 'guideId' | 'isDeleted' | 'createdAt' | 'updatedAt'> & {
+    guideId?: string;
+};
