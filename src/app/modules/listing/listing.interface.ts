@@ -1,8 +1,8 @@
-// src/modules/listings/listing.interface.ts
+// src/modules/listings/listing.interface.ts (Updated)
+
 import { Listing } from "@prisma/client";
 
 export type ListingCategory = 'Food' | 'Adventure' | 'Culture' | 'Photography' | 'Nature';
-
 
 export interface IListing {
   id: string;
@@ -27,7 +27,8 @@ export interface IListingCreate {
   location?: string;
   image?: string;
   images?: string[]; // array of image URLs
-  guideId: string;
+  // guideId is OPTIONAL here because it comes from req.user, not req.body payload
+  guideId?: string; 
   maxGroupSize?: number;
   duration?: string;
   category?: ListingCategory;
@@ -35,6 +36,7 @@ export interface IListingCreate {
 }
 
 export interface IListingUpdate {
+// ... (rest of the file remains the same)
   title?: string;
   description?: string;
   price?: number;
@@ -49,6 +51,7 @@ export interface IListingUpdate {
 }
 
 export interface IListingFilterRequest {
+// ... (rest of the file remains the same)
   searchTerm?: string;
   category?: ListingCategory | ListingCategory[];
   minPrice?: number;

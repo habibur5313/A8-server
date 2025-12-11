@@ -79,8 +79,21 @@ const getByIdFromDB = async (id: string) => {
 };
 
 const createIntoDB = async (req : any) => {
-console.log(req)
+  const payload: IListingCreate = req.body;
+  const { ...listingData } = payload;
+  const listing = await prisma.listing.create({
+    data: {
+      ...listingData, 
+      guideId: req.user.id,
+    },
+    include: {
+      guide: { select: { id: true, name: true, profilePhoto: true } },
+    },
+  });
+  return listing;
+
 };
+
 
 const updateIntoDB = async (id: string, payload: IListingUpdate) => {
   const { ...listingData } = payload;
