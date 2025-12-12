@@ -1,5 +1,5 @@
 import express from 'express';
-import { apiLimiter } from '../middlewares/rateLimiter';
+// import { apiLimiter } from '../middlewares/rateLimiter';
 import { userRoutes } from '../modules/user/user.routes';
 import { AuthRoutes } from '../modules/auth/auth.routes';
 import { AdminRoutes } from '../modules/admin/admin.routes';

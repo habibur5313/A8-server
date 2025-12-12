@@ -30,10 +30,10 @@ const getAllFromDB = async (
     });
   }
 
-  // if (category) {
-  //   const cats = Array.isArray(category) ? category : [category];
-  //   andConditions.push({ category: { in: cats as any } });
-  // }
+  if (category) {
+    const cats = Array.isArray(category) ? category : [category];
+    andConditions.push({ category: { in: cats as any } });
+  }
 
   if (typeof minPrice === "number" || typeof maxPrice === "number") {
     const priceCondition: any = {};
@@ -66,7 +66,7 @@ const getAllFromDB = async (
         : { createdAt: "desc" },
     include: {
       guide: {
-        select: { id: true, name: true, profilePhoto: true },
+        select: { id: true, name: true, profilePhoto: true, email: true },
       },
     },
   });
@@ -80,7 +80,9 @@ const getByIdFromDB = async (id: string) => {
   const listing = await prisma.listing.findUnique({
     where: { id },
     include: {
-      guide: { select: { id: true, name: true, profilePhoto: true } },
+      guide: {
+        select: { id: true, name: true, profilePhoto: true, email: true, reviews: true },
+      },
       bookings: false,
       reviews: false,
     },
@@ -88,7 +90,6 @@ const getByIdFromDB = async (id: string) => {
   if (!listing || listing.isDeleted) return null;
   return listing;
 };
-
 
 const createIntoDB = async (req: any, user: IAuthUser) => {
   const payload = req.body;
@@ -107,21 +108,21 @@ const createIntoDB = async (req: any, user: IAuthUser) => {
   }
 
   const foundUser = await prisma.guide.findUnique({
-  where: { email: user.email },
-});
+    where: { email: user.email },
+  });
 
-console.log("FOUND USER FROM DB:", foundUser);
+  console.log("FOUND USER FROM DB:", foundUser);
 
-if (!foundUser) {
-  throw new Error("User not found in DB");
-}
+  if (!foundUser) {
+    throw new Error("User not found in DB");
+  }
 
   const listing = await prisma.listing.create({
     data: {
-    ...listingData,
-    guideId: foundUser.id,   // MUST match users.id
-    price: processedPrice,
-  },
+      ...listingData,
+      guideId: foundUser.id, // MUST match users.id
+      price: processedPrice,
+    },
     include: {
       guide: { select: { id: true, name: true, profilePhoto: true } },
     },
@@ -129,7 +130,6 @@ if (!foundUser) {
 
   return listing;
 };
-
 
 const updateIntoDB = async (id: string, payload: IListingUpdate) => {
   const { ...listingData } = payload;

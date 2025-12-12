@@ -1,9 +1,19 @@
 // src/modules/bookings/booking.service.ts
-import { Booking, Prisma, BookingStatus, PaymentStatus } from "@prisma/client";
+import {
+  Booking,
+  Prisma,
+  BookingStatus,
+  PaymentStatus,
+  UserRole,
+} from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { IPaginationOptions } from "../../interfaces/pagination";
-import { IBookingCreate, IBookingFilterRequest, IBookingUpdateStatus } from "./booking.interface";
+import {
+  IBookingCreate,
+  IBookingFilterRequest,
+  IBookingUpdateStatus,
+} from "./booking.interface";
 import { bookingSearchableFields } from "./booking.constant";
 import { IAuthUser } from "../../interfaces/common";
 
@@ -13,7 +23,7 @@ import { IAuthUser } from "../../interfaces/common";
  * Creates a new booking in the database.
  * Ensures the listing exists and isn't deleted.
  */
-const createBooking = async (req: any ,user: IAuthUser): Promise<Booking> => {
+const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
   const payload: IBookingCreate = req.body;
   const { listingId, bookingDate } = payload;
 
@@ -22,14 +32,14 @@ const createBooking = async (req: any ,user: IAuthUser): Promise<Booking> => {
   }
 
   const foundUser = await prisma.tourist.findUnique({
-  where: { email: user.email },
-});
+    where: { email: user.email },
+  });
 
-console.log("FOUND USER FROM DB:", foundUser);
+  console.log("FOUND USER FROM DB:", foundUser);
 
-if (!foundUser) {
-  throw new Error("User not found in DB");
-}
+  if (!foundUser) {
+    throw new Error("User not found in DB");
+  }
 
   // 1. Verify the listing exists and is active
   const listing = await prisma.listing.findUnique({
@@ -39,13 +49,13 @@ if (!foundUser) {
   if (!listing) {
     throw new Error("Listing not found or is unavailable.");
   }
-  
+
   // 2. Format the date correctly if it came as a string from the client
   const dateObject = new Date(bookingDate);
 
   const newBooking = await prisma.booking.create({
     data: {
-      touristId : foundUser.id,  
+      touristId: foundUser.id,
       listingId,
       bookingDate: dateObject,
       status: BookingStatus.PENDING, // Default status
@@ -53,7 +63,9 @@ if (!foundUser) {
     },
     include: {
       tourist: { select: { id: true, name: true, profilePhoto: true } },
-      listing: { select: { id: true, title: true, price: true, location: true } },
+      listing: {
+        select: { id: true, title: true, price: true, location: true },
+      },
     },
   });
 
@@ -87,7 +99,7 @@ const getById = async (id: string): Promise<Booking | null> => {
 const getAllFromDB = async (
   filters: IBookingFilterRequest,
   options: IPaginationOptions,
-  userRole?: 'guide' | 'tourist',
+  userRole?: UserRole,
   userId?: string
 ) => {
   const { limit, page, skip } = paginationHelper.calculatePagination(options);
@@ -104,16 +116,16 @@ const getAllFromDB = async (
   }
 
   // Handle specific user roles for filtering their own bookings
-  if (userRole === 'tourist' && userId) {
+  if (userRole === UserRole.TOURIST && userId) {
     andConditions.push({ touristId: userId });
   }
 
   // Handle specific filtering for a guide's listings (requires a nested filter)
-  if (userRole === 'guide' && userId) {
+  if (userRole === UserRole.GUIDE && userId) {
     andConditions.push({
       listing: {
-        guideId: userId
-      }
+        guideId: userId,
+      },
     });
   }
 
@@ -128,16 +140,31 @@ const getAllFromDB = async (
 
   andConditions.push({ isDeleted: false });
 
-  const where: Prisma.BookingWhereInput = andConditions.length ? { AND: andConditions } : {};
+  const where: Prisma.BookingWhereInput = andConditions.length
+    ? { AND: andConditions }
+    : {};
 
   const result = await prisma.booking.findMany({
     where,
     skip,
     take: limit,
-    orderBy: options.sortBy && options.sortOrder ? { [options.sortBy]: options.sortOrder } : { createdAt: "desc" },
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : { createdAt: "desc" },
     include: {
-        tourist: { select: { id: true, name: true, profilePhoto: true } },
-        listing: { select: { id: true, title: true, price: true, location: true } },
+      tourist: { select: { id: true, name: true, profilePhoto: true } },
+      listing: {
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          location: true,
+          guide: {
+            select: { id: true, name: true, profilePhoto: true },
+          },
+        },
+      },
     },
   });
 
@@ -146,14 +173,18 @@ const getAllFromDB = async (
   return { meta: { total, page, limit }, data: result };
 };
 
-
 /**
  * Updates the status or payment status of a booking.
  */
-const updateBookingStatus = async (id: string, payload: IBookingUpdateStatus): Promise<Booking | null> => {
+const updateBookingStatus = async (
+  id: string,
+  payload: IBookingUpdateStatus
+): Promise<Booking | null> => {
   const { status, paymentStatus } = payload;
 
-  const bookingInfo = await prisma.booking.findUniqueOrThrow({ where: { id, isDeleted: false } });
+  const bookingInfo = await prisma.booking.findUniqueOrThrow({
+    where: { id, isDeleted: false },
+  });
 
   const updatedData: Partial<Booking> = {};
   if (status) updatedData.status = status;
@@ -184,4 +215,3 @@ export const BookingService = {
   updateBookingStatus,
   softDelete,
 };
-
