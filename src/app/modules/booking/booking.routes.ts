@@ -46,4 +46,10 @@ router.delete(
   BookingController.softDeleteBooking
 );
 
+router.delete(
+  '/:id',
+  // auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  BookingController.deleteBooking
+);
+
 export const BookingRoutes = router;

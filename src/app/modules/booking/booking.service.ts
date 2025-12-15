@@ -25,7 +25,7 @@ import { IAuthUser } from "../../interfaces/common";
  */
 const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
   const payload: IBookingCreate = req.body;
-  const { listingId, bookingDate } = payload;
+  const { listingId, guideId, bookingDate } = payload;
 
   if (!user) {
     throw new Error("User not authenticated");
@@ -41,13 +41,22 @@ const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
     throw new Error("User not found in DB");
   }
 
-  // 1. Verify the listing exists and is active
-  const listing = await prisma.listing.findUnique({
-    where: { id: listingId, isDeleted: false },
+  if (listingId) {
+    const listing = await prisma.listing.findUnique({
+      where: { id: listingId, isDeleted: false },
+    });
+
+    if (!listing) {
+      throw new Error("Listing not found or is unavailable.");
+    }
+  }
+
+  const guide = await prisma.guide.findUnique({
+    where: { id: guideId, isDeleted: false },
   });
 
-  if (!listing) {
-    throw new Error("Listing not found or is unavailable.");
+  if (!guide) {
+    throw new Error("Guide not found or is unavailable.");
   }
 
   // 2. Format the date correctly if it came as a string from the client
@@ -56,6 +65,7 @@ const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
   const newBooking = await prisma.booking.create({
     data: {
       touristId: foundUser.id,
+      guideId: guideId,
       listingId,
       bookingDate: dateObject,
       status: BookingStatus.PENDING, // Default status
@@ -66,6 +76,7 @@ const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
       listing: {
         select: { id: true, title: true, price: true, location: true },
       },
+      guide: { select: { id: true, name: true, profilePhoto: true } },
     },
   });
 
@@ -81,9 +92,14 @@ const getById = async (id: string): Promise<Booking | null> => {
     include: {
       tourist: { select: { id: true, name: true, profilePhoto: true } },
       listing: {
-        include: {
-          guide: { select: { id: true, name: true, profilePhoto: true } },
-        },
+        select: { id: true, title: true, price: true, location: true },
+      },
+      guide: {
+        select: {
+          id: true,
+          name: true,
+          profilePhoto: true,
+      }
       },
     },
   });
@@ -160,9 +176,15 @@ const getAllFromDB = async (
           title: true,
           price: true,
           location: true,
-          guide: {
-            select: { id: true, name: true, profilePhoto: true },
-          },
+        },
+      },
+      guide: {
+        select: {
+          id: true,
+          name: true,
+          profilePhoto: true,
+          guideFee: true,
+          
         },
       },
     },
@@ -198,9 +220,14 @@ const updateBookingStatus = async (
   return updatedBooking;
 };
 
+const deleteBooking = async (id: string): Promise<Booking> => {
+  return prisma.booking.delete({ where: { id } });
+};
+
 /**
  * Soft deletes a booking by marking it as deleted.
  */
+
 const softDelete = async (id: string): Promise<Booking> => {
   return prisma.booking.update({
     where: { id },
@@ -213,5 +240,6 @@ export const BookingService = {
   getById,
   getAllFromDB,
   updateBookingStatus,
+  deleteBooking,
   softDelete,
 };
