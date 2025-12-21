@@ -54,8 +54,21 @@ const getAllFromDB = async (
       options.sortBy && options.sortOrder
         ? { [options.sortBy]: options.sortOrder }
         : { averageRating: "desc" },
-    include: {
-      reviews: { select: { rating: true } },
+     include: {
+      reviews: {
+        select: {
+          rating: true,
+          comment: true,
+          createdAt: true,
+          tourist: { select: { name: true, profilePhoto: true } },
+        },
+      },
+      bookings: {
+        include: {
+          listing: { include: { guide: { select: { id: true, name: true } } } },
+          tourist: { select: { name: true, profilePhoto: true } },
+        },
+      },
     },
   });
 
@@ -73,6 +86,12 @@ const getByIdFromDB = async (id: string) => {
           rating: true,
           comment: true,
           createdAt: true,
+          tourist: { select: { name: true, profilePhoto: true } },
+        },
+      },
+      bookings: {
+        include: {
+          listing: { include: { guide: { select: { id: true, name: true } } } },
           tourist: { select: { name: true, profilePhoto: true } },
         },
       },
