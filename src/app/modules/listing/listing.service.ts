@@ -68,7 +68,7 @@ const getAllFromDB = async (
         : { createdAt: "desc" },
     include: {
       guide: {
-        select: { id: true, name: true, profilePhoto: true, email: true },
+        select: { id: true, name: true, profilePhoto: true, email: true, totalReviews: true,averageRating: true   },
       },
     },
   });
