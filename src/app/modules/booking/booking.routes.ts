@@ -17,7 +17,6 @@ router.post(
   BookingController.createBooking
 );
 
-// General route to get all bookings (admin/super_admin usually handles this view)
 router.get(
     '/', 
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.GUIDE, UserRole.TOURIST),
@@ -48,7 +47,7 @@ router.delete(
 
 router.delete(
   '/:id',
-  // auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
+  auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
   BookingController.deleteBooking
 );
 

@@ -10,10 +10,8 @@ const router = express.Router();
 // AI driven doctor suggestion
 router.get('/suggestion', GuideController.getAiSuggestion);
 
-// task 3
 router.get('/', GuideController.getAllFromDB);
 
-//task 4
 router.get('/:id', GuideController.getByIdFromDB);
 
 router.patch(
@@ -23,14 +21,12 @@ router.patch(
     GuideController.updateIntoDB
 );
 
-//task 5
 router.delete(
     '/:id',
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),
     GuideController.deleteFromDB
 );
 
-// task 6
 router.delete(
     '/soft/:id',
     auth(UserRole.SUPER_ADMIN, UserRole.ADMIN),

@@ -32,7 +32,6 @@ router.post(
 router.get("/", ListingController.getAllFromDB);
 router.get(
   "/:id",
-  auth(UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.GUIDE, UserRole.TOURIST),
   ListingController.getByIdFromDB
 );
 router.patch(

@@ -36,11 +36,23 @@ router.post(
 
 router.post(
     '/reset-password',
+    auth(
+        UserRole.SUPER_ADMIN,
+        UserRole.ADMIN,
+        UserRole.GUIDE,
+        UserRole.TOURIST
+    ),
     AuthController.resetPassword
 )
 
 router.get(
     '/me',
+    auth(
+        UserRole.SUPER_ADMIN,
+        UserRole.ADMIN,
+        UserRole.GUIDE,
+        UserRole.TOURIST
+    ),
     AuthController.getMe
 )
 
