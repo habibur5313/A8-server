@@ -13,16 +13,33 @@ import { IAuthUser } from '../../interfaces/common';
 
 
 
-const createBooking = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
-  const result = await BookingService.createBooking(req, req.user!);
 
-  sendResponse<Booking>(res, {
-    statusCode: httpStatus.CREATED,
-    success: true,
-    message: 'Booking created successfully',
-    data: result,
-  });
-});
+// const createBooking = catchAsync(async (req: Request & { user?: IAuthUser }, res: Response) => {
+//   const result = await BookingService.createBooking(req.body, req.user!);
+
+//   sendResponse<Booking>(res, {
+//     statusCode: httpStatus.CREATED,
+//     success: true,
+//     message: 'Booking created successfully',
+//     data: result,
+//   });
+// });
+
+const createBooking = catchAsync(
+  async (req: Request & { user?: IAuthUser }, res: Response) => {
+
+    const result = await BookingService.createBooking(req, req.user!);
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: 'Booking created successfully',
+      data: result,
+    });
+  }
+);
+
+
 
 const getBookingById = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;

@@ -16,6 +16,9 @@ import {
 } from "./booking.interface";
 import { bookingSearchableFields } from "./booking.constant";
 import { IAuthUser } from "../../interfaces/common";
+import { v4 as uuidv4 } from 'uuid';
+import { stripe } from "../../../helpers/stripe";
+
 
 // --- Helper Functions & Core Services ---
 
@@ -23,7 +26,68 @@ import { IAuthUser } from "../../interfaces/common";
  * Creates a new booking in the database.
  * Ensures the listing exists and isn't deleted.
  */
-const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
+// const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
+//   const payload: IBookingCreate = req.body;
+//   const { listingId, guideId, bookingDate } = payload;
+
+//   if (!user) {
+//     throw new Error("User not authenticated");
+//   }
+
+//   const foundUser = await prisma.tourist.findUnique({
+//     where: { email: user.email },
+//   });
+
+//   console.log("FOUND USER FROM DB:", foundUser);
+
+//   if (!foundUser) {
+//     throw new Error("User not found in DB");
+//   }
+
+//   if (listingId) {
+//     const listing = await prisma.listing.findUnique({
+//       where: { id: listingId, isDeleted: false },
+//     });
+
+//     if (!listing) {
+//       throw new Error("Listing not found or is unavailable.");
+//     }
+//   }
+
+//   const guide = await prisma.guide.findUnique({
+//     where: { id: guideId, isDeleted: false },
+//   });
+
+//   if (!guide) {
+//     throw new Error("Guide not found or is unavailable.");
+//   }
+
+//   // 2. Format the date correctly if it came as a string from the client
+//   const dateObject = new Date(bookingDate);
+
+//   const newBooking = await prisma.booking.create({
+//     data: {
+//       touristId: foundUser.id,
+//       guideId: guideId,
+//       listingId,
+//       bookingDate: dateObject,
+//       status: BookingStatus.PENDING, // Default status
+//       paymentStatus: PaymentStatus.PENDING, // Default status
+//     },
+//     include: {
+//       tourist: { select: { id: true, name: true, profilePhoto: true } },
+//       listing: {
+//         select: { id: true, title: true, price: true, location: true },
+//       },
+//       guide: { select: { id: true, name: true, profilePhoto: true } },
+//     },
+//   });
+
+//   return newBooking;
+// };
+
+
+const createBooking = async (req: any, user: IAuthUser) => {
   const payload: IBookingCreate = req.body;
   const { listingId, guideId, bookingDate } = payload;
 
@@ -35,53 +99,79 @@ const createBooking = async (req: any, user: IAuthUser): Promise<Booking> => {
     where: { email: user.email },
   });
 
-  console.log("FOUND USER FROM DB:", foundUser);
-
   if (!foundUser) {
     throw new Error("User not found in DB");
   }
 
-  if (listingId) {
-    const listing = await prisma.listing.findUnique({
-      where: { id: listingId, isDeleted: false },
-    });
-
-    if (!listing) {
-      throw new Error("Listing not found or is unavailable.");
-    }
-  }
-
-  const guide = await prisma.guide.findUnique({
+  const guide = await prisma.guide.findUniqueOrThrow({
     where: { id: guideId, isDeleted: false },
   });
 
-  if (!guide) {
-    throw new Error("Guide not found or is unavailable.");
-  }
+  const listing = listingId
+    ? await prisma.listing.findUniqueOrThrow({
+        where: { id: listingId, isDeleted: false },
+      })
+    : null;
 
-  // 2. Format the date correctly if it came as a string from the client
   const dateObject = new Date(bookingDate);
 
-  const newBooking = await prisma.booking.create({
-    data: {
-      touristId: foundUser.id,
-      guideId: guideId,
-      listingId,
-      bookingDate: dateObject,
-      status: BookingStatus.PENDING, // Default status
-      paymentStatus: PaymentStatus.PENDING, // Default status
-    },
-    include: {
-      tourist: { select: { id: true, name: true, profilePhoto: true } },
-      listing: {
-        select: { id: true, title: true, price: true, location: true },
+  const result = await prisma.$transaction(async (tnx) => {
+    // 1️⃣ Create Booking
+    const newBooking = await tnx.booking.create({
+      data: {
+        touristId: foundUser.id,
+        guideId: guideId,
+        listingId,
+        bookingDate: dateObject,
+        status: BookingStatus.PENDING,
+        paymentStatus: PaymentStatus.PENDING,
       },
-      guide: { select: { id: true, name: true, profilePhoto: true } },
-    },
+    });
+
+    // 2️⃣ Create Payment Record
+    const transactionId = uuidv4();
+
+    const payment = await tnx.payment.create({
+      data: {
+        bookingId: newBooking.id,
+        amount: listing ? listing.price : guide.guideFee,
+        transactionId,
+      },
+    });
+
+    // 3️⃣ Create Stripe Session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: user.email || "",
+      line_items: [
+        {
+          price_data: {
+            currency: "bdt",
+            product_data: {
+              name: listing
+                ? `Tour Booking: ${listing.title}`
+                : `Guide Booking: ${guide.name}`,
+            },
+            unit_amount: (listing ? listing.price : guide.guideFee) * 100,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        bookingId: newBooking.id,
+        paymentId: payment.id,
+      },
+      success_url: `${process.env.FRONTEND_URL}/payment/success`,
+      cancel_url: `${process.env.FRONTEND_URL}/dashboard/my-bookings`,
+    });
+
+    return { paymentUrl: session.url };
   });
 
-  return newBooking;
+  return result;
 };
+
 
 /**
  * Retrieves a single booking by its ID.

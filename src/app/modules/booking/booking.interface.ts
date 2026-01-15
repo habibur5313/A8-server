@@ -2,8 +2,10 @@
 
 import { Booking, BookingStatus, PaymentStatus } from "@prisma/client";
 
-export type IBookingCreate = Omit<Booking, 'id' | 'touristId' | 'status' | 'paymentStatus' | 'createdAt' | 'updatedAt' | 'isDeleted' | 'payment'> & {
+export type IBookingCreate = Omit<Booking, 'id' | 'touristId' | 'status' | 'paymentStatus' | 'createdAt' | 'updatedAt' |  'listingId' | 'isDeleted' | 'payment'> & {
   bookingDate: string; // Use string for input, convert to Date object in service
+  guideId: string;
+  listingId?: string;
 };
 
 export interface IBookingFilterRequest {
